@@ -54,9 +54,9 @@ mprotect(tail_sentinel, sizeof(__yxsentinel), PROT_READ); \
 
 #define YX_MEMORY_CLEAR_SENTINEL(zone, ptr) \
 do{size_t size = malloc_size(ptr); \
-if (size > 0){ \
+if (YX_LIKELY(size > 0)){ \
 __yxsentinel* tail_sentinel = ptr + size - sizeof(__yxsentinel); \
-if (*tail_sentinel  == YX_MEMORY_MAGICNUM_HEAP_GUARD) {mprotect(tail_sentinel, sizeof(__yxsentinel), PROT_READ | PROT_WRITE);} \
+if (YX_LIKELY(*tail_sentinel  == YX_MEMORY_MAGICNUM_HEAP_GUARD)) {mprotect(tail_sentinel, sizeof(__yxsentinel), PROT_READ | PROT_WRITE);} \
 }}while(0)
 
 
@@ -95,7 +95,7 @@ DummyZone all_dummy_zones[8];
     vm_address_t* zones;
     unsigned int count;
     kern_return_t kr = malloc_get_all_zones(TASK_NULL, 0, &zones, &count);
-    if (kr == KERN_SUCCESS)
+    if (YX_LIKELY(kr == KERN_SUCCESS))
     {
         for (unsigned int i = 0; i < count; i++)
         {
@@ -103,7 +103,7 @@ DummyZone all_dummy_zones[8];
             malloc_zone_t *zone = (malloc_zone_t *)zones[i];
             
             YX_MEMORY_FASTDUMMYZONE_WITH_ZONE(&dummy_zone, zone);
-            if (NULL == dummy_zone)
+            if (YX_UNLIKELY(NULL == dummy_zone))
                 continue;
 
             YXMEMZONE_MONITOR_ON(zone, dummy_zone);
@@ -117,7 +117,7 @@ DummyZone all_dummy_zones[8];
     vm_address_t* zones;
     unsigned int count;
     kern_return_t kr = malloc_get_all_zones(TASK_NULL, 0, &zones, &count);
-    if (kr == KERN_SUCCESS)
+    if (YX_LIKELY(kr == KERN_SUCCESS))
     {
         for (unsigned int i = 0; i < count; i++)
         {
@@ -125,7 +125,7 @@ DummyZone all_dummy_zones[8];
             malloc_zone_t *zone = (malloc_zone_t *)zones[i];
             
             YX_MEMORY_FASTDUMMYZONE_WITH_ZONE(&dummy_zone, zone);
-            if (NULL == dummy_zone)
+            if (YX_UNLIKELY(NULL == dummy_zone))
                 continue;
             
             YXMEMZONE_MONITOR_OFF(zone, dummy_zone);
@@ -144,7 +144,7 @@ static void _yx_new_scalable_free(struct _malloc_zone_t *zone, void *ptr)
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
     
-    if (NULL != dummy_zone)
+    if (YX_LIKELY(NULL != dummy_zone))
     {
         YX_MEMORY_CLEAR_SENTINEL(zone, ptr);
         return dummy_zone->free(zone, ptr);
@@ -159,7 +159,7 @@ static void* _yx_new_scalable_malloc(struct _malloc_zone_t *zone, size_t size)
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
 
-    if (NULL != dummy_zone)
+    if (YX_LIKELY(NULL != dummy_zone))
     {
         __yxptr mem;
         YX_MEMORY_MALLOC_WITH_SENTINEL(&mem, zone, size);
@@ -175,7 +175,7 @@ void _yx_free_definite_size (struct _malloc_zone_t *zone, void *ptr, size_t size
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
     
-    if (NULL != dummy_zone &&  size > 0)
+    if (YX_LIKELY(NULL != dummy_zone &&  size > 0))
     {
         YX_MEMORY_CLEAR_SENTINEL(zone, ptr);
         return dummy_zone->free_definite_size(zone, ptr, size);
@@ -188,7 +188,7 @@ static void* _yx_new_calloc(struct _malloc_zone_t *zone, size_t num_items, size_
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
     
-    if (NULL != dummy_zone)
+    if (YX_LIKELY(NULL != dummy_zone))
     {
         __yxptr mem;
         YX_MEMORY_MALLOC_WITH_SENTINEL(&mem, zone, size);
