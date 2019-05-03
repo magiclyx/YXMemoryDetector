@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+/*支持自定义zone*/
+//:~ TODO 未完成，不要打开
+#define YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE 0
+
 @interface YXMemoryDector : NSObject
 + (void)start;
 + (void)stop;

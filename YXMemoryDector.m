@@ -8,6 +8,7 @@
 
 #import "YXMemoryDector.h"
 #import "YXMemUtility.h"
+#import "YXDummyZone.h"
 #import <stdio.h>
 
 
@@ -90,10 +91,15 @@ DummyZone all_dummy_zones[8];
 
 + (void)start
 {
-    memset(all_dummy_zones, 0, sizeof(all_dummy_zones));
-    
     vm_address_t* zones;
     unsigned int count;
+    
+    yx_os_memzero(all_dummy_zones, sizeof(all_dummy_zones));
+    
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+    yx_dummyzone_initialize();
+#endif
+    
     kern_return_t kr = malloc_get_all_zones(TASK_NULL, 0, &zones, &count);
     if (YX_LIKELY(kr == KERN_SUCCESS))
     {
@@ -103,6 +109,12 @@ DummyZone all_dummy_zones[8];
             malloc_zone_t *zone = (malloc_zone_t *)zones[i];
             
             YX_MEMORY_FASTDUMMYZONE_WITH_ZONE(&dummy_zone, zone);
+
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+            if (NULL == dummy_zone)
+                dummy_zone = yx_dummyzone_create_from_zone(zone);
+#endif
+            
             if (YX_UNLIKELY(NULL == dummy_zone))
                 continue;
 
@@ -125,6 +137,12 @@ DummyZone all_dummy_zones[8];
             malloc_zone_t *zone = (malloc_zone_t *)zones[i];
             
             YX_MEMORY_FASTDUMMYZONE_WITH_ZONE(&dummy_zone, zone);
+            
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+            if (NULL == dummy_zone)
+                dummy_zone = yx_dummyzone_create_from_zone(zone);
+#endif
+            
             if (YX_UNLIKELY(NULL == dummy_zone))
                 continue;
             
@@ -144,6 +162,11 @@ static void _yx_new_scalable_free(struct _malloc_zone_t *zone, void *ptr)
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
     
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+    if (NULL == dummy_zone)
+        dummy_zone = yx_dummyzone_search_from_zone(zone);
+#endif
+    
     if (YX_LIKELY(NULL != dummy_zone))
     {
         YX_MEMORY_CLEAR_SENTINEL(zone, ptr);
@@ -158,6 +181,11 @@ static void* _yx_new_scalable_malloc(struct _malloc_zone_t *zone, size_t size)
     
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
+    
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+    if (NULL == dummy_zone)
+        dummy_zone = yx_dummyzone_search_from_zone(zone);
+#endif
 
     if (YX_LIKELY(NULL != dummy_zone))
     {
@@ -175,6 +203,11 @@ void _yx_free_definite_size (struct _malloc_zone_t *zone, void *ptr, size_t size
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
     
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+    if (NULL == dummy_zone)
+        dummy_zone = yx_dummyzone_search_from_zone(zone);
+#endif
+    
     if (YX_LIKELY(NULL != dummy_zone &&  size > 0))
     {
         YX_MEMORY_CLEAR_SENTINEL(zone, ptr);
@@ -187,6 +220,11 @@ static void* _yx_new_calloc(struct _malloc_zone_t *zone, size_t num_items, size_
 {
     DummyZoneRef dummy_zone = NULL;
     YX_MEMORY_FIND_IN_FASTDUMMYZONE_RECORD(&dummy_zone);
+    
+#if YXMEMORY_DETECTOR_SUPPORT_CUSTOM_ZONE
+    if (NULL == dummy_zone)
+        dummy_zone = yx_dummyzone_search_from_zone(zone);
+#endif
     
     if (YX_LIKELY(NULL != dummy_zone))
     {
