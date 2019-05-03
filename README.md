@@ -9,7 +9,7 @@ ios/macos 内存检测相关工具，有时间会继续写(等我个人wiki写�
 
 注意：
 1. 需要完善的符号平台和灰度机制，灰度千分之一用户。
-2. 对内存有额外消耗，通过iphone5测试，但考只在iphone 7 以上机器上开启。
+2. 对内存有额外消耗，通过iphone5测试，但可以只在iphone 7 以上机器上开启。
 3. 可在某功能激活时再开启。
 4. 只是实验性质代码，谨慎使用。
 
@@ -27,3 +27,9 @@ TODO:
 /*关闭*/
 [YXMemoryDector stop];
 ```
+
+
+联系方式：
+mail: liu.yuxi.canaan@gmail.com
+QQ: 422099986
+wechat: piequal23p1415926897
