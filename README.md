@@ -28,8 +28,3 @@ TODO:
 [YXMemoryDector stop];
 ```
 
-
-联系方式：
-mail: liu.yuxi.canaan@gmail.com
-QQ: 422099986
-wechat: piequal23p1415926897
